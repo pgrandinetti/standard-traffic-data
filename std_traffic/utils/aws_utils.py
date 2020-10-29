@@ -8,18 +8,21 @@ from botocore.exceptions import ClientError
 from boto3.s3.transfer import TransferConfig
 
 
-def _init_client(client_name: str) -> boto3.client:
+def _init_client(client_name: str, **kwargs) -> boto3.client:
+    aws_access_key_id = kwargs.get('AWS_KEY_ID', environ['AWS_KEY_ID'])
+    aws_secret_access_key = kwargs.get('AWS_SECRET_KEY', environ['AWS_SECRET_KEY'])
+    region_name = kwargs.get('AWS_REGION', environ['AWS_REGION'])
     return boto3.client(
         client_name,
-        aws_access_key_id=environ['AWS_KEY_ID'],
-        aws_secret_access_key=environ['AWS_SECRET_KEY'],
-        region_name=environ['AWS_REGION'])
+        aws_access_key_id=aws_access_key_id,
+        aws_secret_access_key=aws_secret_access_key,
+        region_name=region_name)
 
 
-def get_s3_client() -> boto3.client:
+def get_s3_client(**kwargs) -> boto3.client:
     """Create a connection client to S3."""
 
-    return _init_client('s3')
+    return _init_client('s3', **kwargs)
 
 
 def upload_file(
@@ -27,7 +30,8 @@ def upload_file(
         file_path: str,
         aws_name: str = None,
         large: bool = False,
-        thrsh: int = None
+        thrsh: int = None,
+        **kwargs
 ) -> bool:
     """Upload a large file to aws/s3 using multipart upload.
 
@@ -41,7 +45,7 @@ def upload_file(
 
     def _upload_file():
         # this function uses the relative scoping features
-        client = get_s3_client()
+        client = get_s3_client(**kwargs)
         if large:
             config = TransferConfig(
                 multipart_threshold=thrsh_,

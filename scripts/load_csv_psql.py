@@ -1,6 +1,7 @@
 """"Runnable script to load a CSV into a
 PostgreSQL table"""
 
+import time
 import argparse
 from os import environ
 import logging
@@ -41,28 +42,35 @@ if __name__ == '__main__':
         default=';')
     parser.add_argument(
         '--host',
-        help='Database host',
-        default=environ['DB_HOST'])
+        help='Database host')
     parser.add_argument(
         '--user',
-        help='Database username',
-        default=environ['DB_USER'])
+        help='Database username')
     parser.add_argument(
         '--password',
-        help='Database user password',
-        default=environ['DB_PASSWORD'])
+        help='Database user password')
     parser.add_argument(
         '--port',
         help='Database connection port',
         default=5432)
-
     args = parser.parse_args()
+
+    if not args.host:
+        args.host = environ['DB_HOST']
+    if not args.user:
+        args.user = environ['DB_USER']
+    if not args.password:
+        args.password = environ['DB_PASSWORD']
+
     with get_db(
             args.database,
             args.user,
             args.password,
             args.host,
             args.port) as connection:
+        # functions used below can raise
+        # if so, connection will close from context
+        # and rollback automatically
         created = create_table_from_csv(
             connection,
             args.table,
@@ -72,9 +80,15 @@ if __name__ == '__main__':
             log.debug('New table created')
         else:
             log.debug('Table existed')
+        log.debug('Loading file %s in table %s',
+                  args.filep, args.table)
+        t_0 = time.time()
         load_table_from_csv(
             connection,
             args.table,
             args.filep,
             delim=args.delim,
             headers=args.headers)
+        delta = int(time.time() - t_0)
+        log.debug('File %s loaded in %s seconds',
+                  args.filep, delta)

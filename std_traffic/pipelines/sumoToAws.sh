@@ -46,6 +46,7 @@ example() {
     echo "  SUMO_COMMAND='-c /home/scenario/myModel.sumocfg -e 100 --fcd-output' \ "
     echo "  SUMO_MODEL_PREFIX=myModel \ "
     echo "  SUMO_TO_CSV=/home/sumo/tools/xml2csv.py \ "
+    echo "  SUMO_OUTPUT_FILE=saveout \ "
     echo "  ENVR=/home/std_traffic/.env # it will contain the missing AWS_ variables"
     echo "  S3=1 \ "
     echo "  S3_BUCKET=standard-traffic-data \ "
@@ -251,7 +252,7 @@ then
         /tmp/${SUMO_MODEL_PREFIX}.${SUMO_OUTPUT_FILE}.csv \
         ${SUMO_OUTPUT_FILE}.csv \
         ${S3_BUCKET} \
-        true
+        --large true
 fi
 
 # load data into AWS/RDS

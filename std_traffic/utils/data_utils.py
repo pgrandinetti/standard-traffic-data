@@ -50,8 +50,8 @@ def get_columns(csv_file: str, delim: str = ';', nrows: int = 100) -> dict:
     By default use the first 100 columns to understand the type.
 
     :param csv_file: (str) Path to the CSV.
-    :param delim: (str) Delimiter character used in the CSV.
-    :parm nrows: (int) Number of rows to use to infer the types.
+    :param delim: (str) Delimiter character used in the CSV (default ;).
+    :param nrows: (int) Number of rows to use to infer the types (default 100).
     :return: (dict) Map column_name -> column_type. Types are Numpy's.
     """
 
@@ -95,22 +95,18 @@ def create_table_from_csv(
     columns = get_columns(csv_file, delim=delim, nrows=nrows)
     # because table and column names are variable
     # create first an empty table, then add columns
-    try:
-        with conn.cursor() as cur:
-            cur.execute(query1.format(sql.Identifier(table)))
-            for key, val in columns.items():
-                col_name = key
-                col_type = map_numpy_psql(val)
-                cur.execute(query2.format(
-                    sql.Identifier(table),
-                    sql.Identifier(col_name)),
-                    (AsIs(col_type),)
-                )
-    except:
-        log.exception('Error create table')
-        conn.rollback()
-    else:
-        conn.commit()
+    # it may raise
+    with conn.cursor() as cur:
+        cur.execute(query1.format(sql.Identifier(table)))
+        for key, val in columns.items():
+            col_name = key
+            col_type = map_numpy_psql(val)
+            cur.execute(query2.format(
+                sql.Identifier(table),
+                sql.Identifier(col_name)),
+                (AsIs(col_type),)
+            )
+    conn.commit()
     return True
 
 
@@ -132,11 +128,11 @@ def map_numpy_psql(dtype_: np.dtype) -> str:
 
 
 def load_table_from_csv(
-    conn: connection,
-    table: str,
-    filep: str,
-    delim: str = ';',
-    headers: bool = True
+        conn: connection,
+        table: str,
+        filep: str,
+        delim: str = ';',
+        headers: bool = True
 ):
     """Load records from a CSV file onto a table
     in PostgreSQL.
