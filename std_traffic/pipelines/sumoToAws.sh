@@ -25,7 +25,7 @@ usage() {
     echo "OPTIONAL:"
     echo " ENVR,                Full path to file with environment variables. If NULL"
     echo "                      it will try to source the file .env from the current directory."
-    echo "                      It must be the FIRST of the optional arguments (or values may be overwritten"
+    echo "                      It must be the FIRST of the optional arguments (or values may be overwritten)"
     echo " S3,                  1 to load the CSV to AWS/S3"
     echo " S3_BUCKET,           Name of the S3 bucket to load data onto. Required if S3=1"
     echo " AWS_KEY_ID,          Key ID for the AWS account. Required if S3=1"
@@ -46,6 +46,7 @@ example() {
     echo "  SUMO_COMMAND='-c /home/scenario/myModel.sumocfg -e 100 --fcd-output' \ "
     echo "  SUMO_MODEL_PREFIX=myModel \ "
     echo "  SUMO_TO_CSV=/home/sumo/tools/xml2csv.py \ "
+    echo "  ENVR=/home/std_traffic/.env # it will contain the missing AWS_ variables"
     echo "  S3=1 \ "
     echo "  S3_BUCKET=standard-traffic-data \ "
     echo "  DB=1 \ "
@@ -54,7 +55,6 @@ example() {
     echo "  DB_PASSWORD=traffic \ "
     echo "  DATABASE=sumodb \ "
     echo "  TABLE=my_model_end_100 \ "
-    echo "  ENVR=/home/std_traffic/.env # it will contain the missin AWS_ variables"
 }
 
 
