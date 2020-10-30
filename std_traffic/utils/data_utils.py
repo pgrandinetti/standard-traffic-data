@@ -147,16 +147,14 @@ def load_table_from_csv(
     :param headers: (bool) True (default) is the CSV contains headers
     """
 
-    query = """
-        COPY {}
-        FROM '%s'
-        DELIMITER '%s'
-        CSV
-    """
+    freader = open(filep, 'rb')
     if headers:
-        query += 'HEADER'
+        # psycopg2 does not handle headers
+        next(freader)
     with conn.cursor() as cur:
-        cur.execute(
-            sql.SQL(query).format(sql.Identifier(table)),
-            (AsIs(filep), AsIs(delim)))
+        cur.copy_from(
+            freader,
+            table=table,
+            sep=delim,
+            null='')
     conn.commit()
