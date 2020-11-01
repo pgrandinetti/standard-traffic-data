@@ -37,6 +37,12 @@ if __name__ == '__main__':
         help='true if the CSV contains the headers',
         default=True)
     parser.add_argument(
+        '--columns',
+        help='list of column names',
+        nargs='*',
+        type=str,
+        default=None)
+    parser.add_argument(
         '--delim',
         help='Delimiter used in CSV',
         default=';')
@@ -88,7 +94,8 @@ if __name__ == '__main__':
             args.table,
             args.filep,
             delim=args.delim,
-            headers=args.headers)
+            headers=args.headers,
+            columns=args.columns)
         delta = int(time.time() - t_0)
         log.debug('File %s loaded in %s seconds',
                   args.filep, delta)

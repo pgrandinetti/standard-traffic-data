@@ -79,29 +79,6 @@ def get_columns(csv_file: str, delim: str = ';') -> dict:
             result[current_col] = chunk_[current_col].dtype
         else:
             result[current_col] = default
-    """
-    # - read the first 1000 to get all columns names.
-    #   Get not NaN at the same time.
-    # - keep reading in chunks until all column types are inferred,
-    #   or EOF is reached
-    total_len = len(all_names)
-    df_chunk = pd.read_csv(csv_file, skiprows=initial,
-                           sep=delim, chunksize=100)
-    for chunk in df_chunk:
-        if len(result) == total_len:
-            break
-        df_ = chunk[chunk.columns[~chunk.isnull().all()]]
-        dtypes_ = dict(df_.dtypes)
-        for key, val in dtypes_.items():
-            if key not in result:
-                result[key] = val
-    # if some columns are still unassigned
-    # then they are entirely null
-    default = 'O'
-    for key in all_names:
-        if key not in result:
-            result[key] = default
-    """
     return result
 
 
@@ -174,8 +151,7 @@ def load_table_from_csv(
         conn: connection,
         table: str,
         filep: str,
-        delim: str = ';',
-        headers: bool = True
+        **kwargs
 ):
     """Load records from a CSV file onto a table
     in PostgreSQL.
@@ -187,17 +163,26 @@ def load_table_from_csv(
     :param table: (str) Table to be populated
     :param filep: (str) CSV file path
     :param delim: (str) Delimiter used in the CSV. Default to ';'
-    :param headers: (bool) True (default) is the CSV contains headers
+    :param headers: (bool) True (default) is the CSV contains headers.
+                    If False, then columns must be provided.
+    :param columns: (list) Column names in the CSV. Ignored if headers is True.
     """
+
+    delim = kwargs.get('delim', ';')
+    headers = kwargs.get('headers', True)
+    columns = kwargs.get('columns', None)
 
     freader = open(filep, 'rb')
     if headers:
-        # psycopg2 does not handle headers
-        next(freader)
+        head = next(freader)
+        cols = head.decode().strip().split(delim)
+    else:
+        cols = columns
     with conn.cursor() as cur:
         cur.copy_from(
             freader,
             table=table,
             sep=delim,
-            null='')
+            null='',
+            columns=cols)
     conn.commit()
