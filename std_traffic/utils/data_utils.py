@@ -44,29 +44,72 @@ def get_db(
         cursor_factory=psycopg2.extras.DictCursor)
 
 
-def get_columns(csv_file: str, delim: str = ';', nrows: int = 100) -> dict:
-    """Extract the column names from a CSV file.
+def get_columns(csv_file: str, delim: str = ';') -> dict:
+    """Extract the column names and types from a CSV file.
     The default choice for the delimiter (;) is related to SUMO defaults.
-    By default use the first 100 columns to understand the type.
 
     :param csv_file: (str) Path to the CSV.
     :param delim: (str) Delimiter character used in the CSV (default ;).
-    :param nrows: (int) Number of rows to use to infer the types (default 100).
     :return: (dict) Map column_name -> column_type. Types are Numpy's.
     """
 
     # use pandas features
-    dataf = pd.read_csv(csv_file, nrows=nrows, sep=delim)
-    all_types = dict(dataf.dtypes)
-    return all_types
+    # - Read first 1000 row, get columns names, infer types
+    #   by avoiding NA columns
+    # - For each column type missing
+    #   keep reading only that column in chunks until a type is found
+    #   or EOF
+    initial = 1000
+    dataf = pd.read_csv(csv_file, sep=delim, nrows=initial)
+    all_names = set(dataf.columns)
+    df_ = dataf[dataf.columns[~dataf.isnull().all()]]
+    result = dict(df_.dtypes)
+
+    default = 'O'
+    still_missing = {key for key in all_names if key not in result}
+    for current_col in still_missing:
+        df_chunk = pd.read_csv(csv_file, header=0,
+                               skiprows=range(1, initial), sep=delim,
+                               chunksize=5000, usecols=[current_col])
+        for chunk in df_chunk:
+            chunk_ = chunk.dropna()
+            if chunk_.shape[0] > 0:
+                break
+        if chunk_.shape[0] > 0:
+            result[current_col] = chunk_[current_col].dtype
+        else:
+            result[current_col] = default
+    """
+    # - read the first 1000 to get all columns names.
+    #   Get not NaN at the same time.
+    # - keep reading in chunks until all column types are inferred,
+    #   or EOF is reached
+    total_len = len(all_names)
+    df_chunk = pd.read_csv(csv_file, skiprows=initial,
+                           sep=delim, chunksize=100)
+    for chunk in df_chunk:
+        if len(result) == total_len:
+            break
+        df_ = chunk[chunk.columns[~chunk.isnull().all()]]
+        dtypes_ = dict(df_.dtypes)
+        for key, val in dtypes_.items():
+            if key not in result:
+                result[key] = val
+    # if some columns are still unassigned
+    # then they are entirely null
+    default = 'O'
+    for key in all_names:
+        if key not in result:
+            result[key] = default
+    """
+    return result
 
 
 def create_table_from_csv(
         conn: connection,
         table: str,
         csv_file: str,
-        delim: str = ';',
-        nrows: int = 100
+        delim: str = ';'
 ) -> bool:
     """Creates a table in PostgreSQL from a CSV header.
     If the table exists, it does nothing.
@@ -92,7 +135,7 @@ def create_table_from_csv(
     if exists:
         return False
 
-    columns = get_columns(csv_file, delim=delim, nrows=nrows)
+    columns = get_columns(csv_file, delim=delim)
     # because table and column names are variable
     # create first an empty table, then add columns
     # it may raise
