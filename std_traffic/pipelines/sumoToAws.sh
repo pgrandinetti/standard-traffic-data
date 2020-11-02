@@ -8,6 +8,9 @@
 # - Load the data from the CSV into AWS/RDS
 #
 
+TMP_DIR=/tmp
+SCRIPT=sumoToAWS
+
 usage() {
     echo "SUMO to AWS Data Pipeline"
     echo "Run a SUMO simulation, then
@@ -38,7 +41,9 @@ usage() {
     echo " DATABASE,            Name of the database. Required if DB=1"
     echo " TABLE,               Name of the table to populate. The table will be created if"
     echo "                      it does not exist. Required if DB=1"
+    echo " CLEANUP,             If 1 will delete the files created (on successful exit only). Default: 0."
 }
+
 
 example() {
     echo "Example usage:"
@@ -59,7 +64,7 @@ example() {
 }
 
 logit() {
-    echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1)" "$1"
+    echo "[$SCRIPT]" " - $(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - " "$1"
 }
 
 if [[ "$1" == "-h" ]]
@@ -116,6 +121,7 @@ do
             DB_PORT)            DB_PORT=${VALUE} ;;
             DATABASE)           DATABASE=${VALUE} ;;
             TABLE)              TABLE=${VALUE} ;;
+            CLEANUP)            CLEANUP=${VALUE} ;;
             *)
     esac
 done
@@ -123,31 +129,31 @@ done
 
 if [ -z ${SUMO_COMMAND+x} ]
 then
-    echo "SUMO_COMMAND is unset"
+    logit "SUMO_COMMAND is unset"
     exit 1
 fi
 
 if [ -z ${SUMO_OUTPUT_FILE+x} ]
 then
-    echo "SUMO_OUTPUT_FILE is unset"
+    logit "SUMO_OUTPUT_FILE is unset"
     exit 1
 fi
 
 if [ -z ${SUMO_MODEL_PREFIX+x} ]
 then
-    echo "SUMO_MODEL_PREFIX is unset"
+    logit "SUMO_MODEL_PREFIX is unset"
     exit 1
 fi
 
 if [ -z ${SUMO_TO_CSV+x} ]
 then
-    echo "SUMO_TO_CSV is unset"
+    logit "SUMO_TO_CSV is unset"
     exit 1
 fi
 
 if [[ "$S3" != "1" ]]
 then
-    echo "S3 will be set to 0 (false)"
+    logit "S3 will be set to 0 (false)"
     S3=0
 else
     S3=1
@@ -155,31 +161,31 @@ fi
 
 if [ -z ${AWS_KEY_ID+x} ] && [ "$S3" -eq 1 ]
 then
-    echo "AWS_KEY_ID is unset with S3=1"
+    logit "AWS_KEY_ID is unset with S3=1"
     exit 1
 fi
 
 if [ "$S3" -eq 1 ] && [ -z ${AWS_SECRET_KEY+x} ]
 then
-    echo "AWS_SECRET_KEY is unset with S3=1"
+    logit "AWS_SECRET_KEY is unset with S3=1"
     exit 1
 fi
 
 if [ "$S3" -eq 1 ] && [ -z ${S3_BUCKET+x} ]
 then
-    echo "S3_BUCKET is unset with S3=1"
+    logit "S3_BUCKET is unset with S3=1"
     exit 1
 fi
 
 if [ "$S3" -eq 1 ] && [ -z ${AWS_REGION+1} ]
 then
-    echo "AWS_REGION is unset with S3=1"
+    logit "AWS_REGION is unset with S3=1"
     exit 1
 fi
 
 if [[ "$DB" != "1" ]]
 then
-    echo "DB will be set to 0 (false)"
+    logit "DB will be set to 0 (false)"
     DB=0
 else
     DB=1
@@ -187,38 +193,46 @@ fi
 
 if [ "$DB" -eq 1 ] && [ -z ${DATABASE+x} ]
 then
-    echo "DATABASE is unset with DB=1"
+    logit "DATABASE is unset with DB=1"
     exit 1
 fi
 
 if [ "$DB" -eq 1 ] && [ -z ${DB_USER+x} ]
 then
-    echo "DB_USER is unset with DB=1"
+    logit "DB_USER is unset with DB=1"
     exit 1
 fi
 
 if [ "$DB" -eq 1 ] && [ -z ${DB_HOST+x} ]
 then
-    echo "DB_HOST is unset with DB=1"
+    logit "DB_HOST is unset with DB=1"
     exit 1
 fi
 
 if [ "$DB" -eq 1 ] && [ -z ${DB_PASSWORD+x} ]
 then
-    echo "DB_PASSWORD is unset with DB=1"
+    logit "DB_PASSWORD is unset with DB=1"
     exit 1
 fi
 
 if [ -z ${DB_PORT+x} ]
 then
-    echo "Setting default DB_PORT=5432"
+    logit "Setting default DB_PORT=5432"
     DB_PORT=5432
 fi
 
 if [ "$DB" -eq 1 ] && [ -z ${TABLE+x} ]
 then
-    echo "TABLE is unset with DB=1"
+    logit "TABLE is unset with DB=1"
     exit 1
+fi
+
+if [ "$CLEANUP" != "1" ]
+then
+    logit "CLEANUP will be set to 0 (default)"
+    CLEANUP=0
+else
+    CLEANUP=1
 fi
 
 if [ "$DB" -eq 1 ] || [ "$S3" -eq 1 ]
@@ -236,17 +250,28 @@ fi
 
 # run sumo with the given args string
 logit "Starting SUMO simulation..."
-sumo $SUMO_COMMAND /tmp/$SUMO_OUTPUT_FILE.xml
-logit "Simulation complete"
+if sumo $SUMO_COMMAND $TMP_DIR/$SUMO_OUTPUT_FILE.xml
+then
+    logit "Simulation complete"
+else
+    logit "Simulation failed"
+    logit "There may be undeleted files at TMP_DIR"
+    exit 1
+fi
 
 # convert the output to CSV
 logit "Starting conversion from XML to CSV..."
-python ${SUMO_TO_CSV} /tmp/${SUMO_MODEL_PREFIX}.${SUMO_OUTPUT_FILE}.xml
-logit "CSV conversion complete"
-
-if [ $S3 -eq 1 ]
-# upload the CSV to AWS/S3
+if python ${SUMO_TO_CSV} $TMP_DIR/${SUMO_MODEL_PREFIX}.${SUMO_OUTPUT_FILE}.xml
 then
+    logit "CSV conversion complete"
+else
+    logit "Conversion to CSV failed"
+    logit "There may be undeleted files at TMP_DIR"
+    exit 1
+fi
+
+
+upload_s3 () {
     export S3_BUCKET=${S3_BUCKET}
     export AWS_KEY_ID=${AWS_KEY_ID}
     export AWS_SECRET_KEY=${AWS_SECRET_KEY}
@@ -256,35 +281,76 @@ then
     # or from local pip install -e ./
     logit "Starting CSV upload to AWS/S3..."
     upload_file_s3.py \
-        /tmp/${SUMO_MODEL_PREFIX}.${SUMO_OUTPUT_FILE}.csv \
+        $TMP_DIR/${SUMO_MODEL_PREFIX}.${SUMO_OUTPUT_FILE}.csv \
         ${SUMO_OUTPUT_FILE}.csv \
         ${S3_BUCKET} \
         --large true
-    logit "Upload to AWS/S3 complete"
+}
+
+
+if [ $S3 -eq 1 ]
+# upload the CSV to AWS/S3
+then
+    logit "Starting CSV upload to AWS/S3..."
+    if upload_s3
+    then
+        logit "Upload to AWS/S3 completed"
+    else
+        logit "Upload to AWS/S3 failed"
+        logit "Files not deleted in ${TMP_DIR}"
+        CLEANUP=0
+    fi
 fi
 
-# load data into AWS/RDS
-if [ $DB -eq 1 ]
-then
+
+split_csv() {
+    awk -v m=1000000 '
+        (NR==1){h=$0;next}
+        (NR%m==2) { close(f); f=sprintf("%s.%0.5d",FILENAME,++c); print h > f }
+        {print > f}' $TMP_DIR/${SUMO_MODEL_PREFIX}.${SUMO_OUTPUT_FILE}.csv
+}
+
+
+load_db() {
     export DB_HOST=${DB_HOST}
     export DB_PASSWORD=${DB_PASSWORD}
     export DB_PORT=${DB_PORT}
     export DB_USER=${DB_USER}
-    # split CSV into smaller files
-    # put 1,000,000 rows in each file (keep the header in every file)
-    # https://stackoverflow.com/a/51421525
-    # output files will be named [..].csv.00001
-    logit "Starting CSV file split..."
-    awk -v m=1000000 '
-        (NR==1){h=$0;next}
-        (NR%m==2) { close(f); f=sprintf("%s.%0.5d",FILENAME,++c); print h > f }
-        {print > f}' /tmp/${SUMO_MODEL_PREFIX}.${SUMO_OUTPUT_FILE}.csv
-    logit "File split complete"
-
     # find all files generated by awk
     # and load them in PostgreSQL
-    logit "Starting data load in PostgreSQL..."
-    find "$(pwd -P)" /tmp -maxdepth 1 -name '*.csv.0*' -exec \
+    find "$(pwd -P)" $TMP_DIR -maxdepth 1 -name "*${SUMO_OUTPUT_FILE}.csv.0*" -exec \
         load_csv_psql.py {} ${DATABASE} ${TABLE} \;
-    logit "Data load complete"
+}
+
+
+# load data into AWS/RDS
+if [ $DB -eq 1 ]
+then
+    logit "Starting CSV file split..."
+    if split_csv
+    then
+        logit "CSV split completed"
+        if load_db
+        then
+            logit "DB load completed"
+        else
+            logit "DB load failed"
+            logit "Files not deleted ${TMP_DIR}"
+            CLEANUP=0
+        fi
+    else
+        logit "CSV split failed"
+        logit "Files not deleted in ${TMP_DIR}"
+        CLEANUP=0
+    fi
 fi
+
+
+if [ $CLEANUP -eq 1 ]
+then
+    logit "Cleaning up..."
+    rm $TMP_DIR/${SUMO_MODEL_PREFIX}.${SUMO_OUTPUT_FILE}*
+fi
+
+logit "All done"
+
