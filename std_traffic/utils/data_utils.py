@@ -86,7 +86,8 @@ def create_table_from_csv(
         conn: connection,
         table: str,
         csv_file: str,
-        delim: str = ';'
+        delim: str = ';',
+        indexes: dict = None
 ) -> bool:
     """Creates a table in PostgreSQL from a CSV header.
     If the table exists, it does nothing.
@@ -95,7 +96,7 @@ def create_table_from_csv(
     :param table: (str) Name of the new table.
     :param csv_file: (str) Path of the CSV file.
     :param delim: (str) Delimiter used in the CSV.
-    :param nrows: (int) Number of rows to infer types.
+    :param indexes: (dict) Indexes to create in format index_name -> [columns]
     :return: (bool) True if a new table was created.
     """
 
@@ -126,6 +127,9 @@ def create_table_from_csv(
                 sql.Identifier(col_name)),
                 (AsIs(col_type),)
             )
+    if isinstance(indexes, dict):
+        for key, val in indexes.items():
+            create_index(conn, table, key, val)
     conn.commit()
     return True
 
@@ -186,3 +190,29 @@ def load_table_from_csv(
             null='',
             columns=cols)
     conn.commit()
+
+
+def create_index(
+        conn: connection,
+        table: str,
+        index: str,
+        columns: list
+):
+    """Create an index in a PostgresSQL database table"""
+
+    log.debug('Creating index on table %s, columns %s',
+              table, columns)
+    query = sql.SQL("""
+        create index {idx_name}
+        on {table} ({cols});
+    """)
+    idx_name = sql.Identifier(index)
+    table = sql.Identifier(table)
+    cols = sql.SQL(', ').join(map(sql.Identifier, columns))
+    with conn.cursor() as cur:
+        cur.execute(query.format(
+            idx_name=idx_name,
+            table=table,
+            cols=cols))
+    conn.commit()
+    log.debug('Index created')

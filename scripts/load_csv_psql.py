@@ -5,6 +5,7 @@ import time
 import argparse
 from os import environ
 import logging
+import json
 
 from std_traffic.utils.data_utils import (
     get_db,
@@ -59,14 +60,20 @@ if __name__ == '__main__':
         '--port',
         help='Database connection port',
         default=5432)
+    parser.add_argument(
+        '--indexes',
+        help=('Indexes to create in the DB. JSON format with '
+              'index name as key, list of columns as value'),
+        default=None)
     args = parser.parse_args()
-
     if not args.host:
         args.host = environ['DB_HOST']
     if not args.user:
         args.user = environ['DB_USER']
     if not args.password:
         args.password = environ['DB_PASSWORD']
+    if args.indexes:
+        args.indexes = json.loads(args.indexes)
 
     with get_db(
             args.database,
@@ -81,7 +88,8 @@ if __name__ == '__main__':
             connection,
             args.table,
             args.filep,
-            delim=args.delim)
+            delim=args.delim,
+            indexes=args.indexes)
         if created:
             log.debug('New table created')
         else:
