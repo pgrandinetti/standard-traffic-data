@@ -3,9 +3,8 @@
 #
 # - Run a SUMO simulation
 # - Convert the output XML to CSV
-# - Upload the CSV to AWS/S3
-# - Split the CSV in smaller files
-# - Load the data from the CSV into AWS/RDS
+# - Upload the CSV to AWS/S3 (optional)
+# - Load the data from the CSV into AWS/RDS (optional)
 #
 
 TMP_DIR=/tmp
@@ -95,8 +94,10 @@ load_env (){
 
 
 # try to load .env from current directory
-# these may be overwritten by the command-line args
 load_env
+# value can be overwritten by the cli
+# see definition of ENVR during cli parsing
+
 
 # parse (key, value) input arguments
 # https://unix.stackexchange.com/a/353639
@@ -246,19 +247,6 @@ else
     CLEANUP=1
 fi
 
-if [ "$DB" -eq 1 ] || [ "$S3" -eq 1 ]
-then
-    # verify that python package is installed
-    if python -c "import std_traffic"
-        then echo "Found python module"
-        else
-            echo "Cannot find python package std_traffic.
-                 Are you running this into a virtualenv?"
-            exit 1
-    fi
-fi
-
-
 # run sumo with the given args string
 logit "Starting SUMO simulation..."
 if sumo $SUMO_COMMAND $TMP_DIR/$SUMO_OUTPUT_FILE.xml
@@ -279,6 +267,19 @@ else
     logit "Conversion to CSV failed"
     logit "There may be undeleted files at TMP_DIR"
     exit 1
+fi
+
+
+# verify that python package is installed
+if [ "$DB" -eq 1 ] || [ "$S3" -eq 1 ]
+then
+    if python -c "import std_traffic"
+        then logit "Found python module"
+        else
+            logit "Cannot find python package std_traffic.
+                  Are you running this into a virtualenv?"
+            exit 1
+    fi
 fi
 
 
@@ -347,7 +348,7 @@ then
             logit "DB load completed"
         else
             logit "DB load failed"
-            logit "Files not deleted ${TMP_DIR}"
+            logit "Files not deleted in ${TMP_DIR}"
             CLEANUP=0
         fi
     else
