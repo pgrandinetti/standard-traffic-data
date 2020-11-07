@@ -206,7 +206,7 @@ def create_index(
         create index {idx_name}
         on {table} ({cols});
     """)
-    idx_name = sql.Identifier(index)
+    idx_name = sql.Identifier(table + '_' + index)
     table = sql.Identifier(table)
     cols = sql.SQL(', ').join(map(sql.Identifier, columns))
     with conn.cursor() as cur:
