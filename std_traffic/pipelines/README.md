@@ -6,7 +6,7 @@ Next follows a description of the data pipelines currently implemented.
 
 ## SUMO to AWS
 
-Usage: `/bin/bash sumoToAWS.sh -h`
+Usage: `/bin/bash sumoToAws.sh -h`
 
 This pipeline executes the following tasks:
 
@@ -15,7 +15,7 @@ This pipeline executes the following tasks:
   - It uploads the CSV on to a AWS/S3 bucket.
   - It loads data from the CSV into a PostgreSQL database.
 
-The pipeline needs to be started with several command line arguments. Again, see example usage in `/bin/bash sumoToAWS.sh -h`.
+The pipeline needs to be started with several command line arguments. Again, see example usage in `/bin/bash sumoToAws.sh -h`.
 
 Here's an example:
 
