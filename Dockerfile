@@ -10,6 +10,7 @@ ARG MODEL_LOC=https://github.com/pgrandinetti/MoSTScenario
 # where the sumo cfg file will be searched.
 # The default value is relative to the MoST package.
 ARG MODEL_DIR=scenario
+ENV MODEL_DIR=${MODEL_DIR}
 
 # SUMO_COMMAND: the command to be given to the `sumo' executable
 # If you'd run `sumo -c /home/scenario/mymodel.sumocfg -e 1000 --fcd-output'
@@ -85,14 +86,13 @@ ENV PATH=/venv/bin:$PATH
 
 RUN git clone https://github.com/pgrandinetti/standard-traffic-data stdata
 RUN cd stdata \
-    && git checkout aws_pipeline \
     && pip3 install -r requirements.txt
 
 RUN cd stdata && pip3 install -e ./
 
 CMD export SUMO_HOME=/usr/share/sumo \
     && /bin/bash stdata/std_traffic/pipelines/sumoToAws.sh \
-    SUMO_COMMAND="-c ./sumodir/scenario/$SUMO_COMMAND" \
+    SUMO_COMMAND="-c ./sumodir/$MODEL_DIR/$SUMO_COMMAND" \
     SUMO_MODEL_PREFIX=$SUMO_MODEL_PREFIX \
     SUMO_OUTPUT_FILE=$SUMO_OUTPUT_FILE \
     SUMO_TO_CSV=/usr/share/sumo/tools/xml/xml2csv.py \
@@ -105,6 +105,7 @@ CMD export SUMO_HOME=/usr/share/sumo \
     DB_USER=$DB_USER \
     DB_PASSWORD=$DB_PASSWORD \
     DB_HOST=$DB_HOST \
+    DATABASE=$DATABASE \
     TABLE=$TABLE \
     S3_BUCKET=$S3_BUCKET \
     CLEANUP=$CLEANUP
