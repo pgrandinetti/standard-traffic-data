@@ -61,8 +61,8 @@ def get_columns(csv_file: str, delim: str = ';') -> dict:
     #   or EOF
     initial = 1000
     dataf = pd.read_csv(csv_file, sep=delim, nrows=initial)
-    all_names = set(dataf.columns)
-    df_ = dataf[dataf.columns[~dataf.isnull().all()]]
+    all_names = dataf.columns
+    df_ = dataf[all_names[~dataf.isnull().all()]]
     result = dict(df_.dtypes)
 
     default = 'O'
