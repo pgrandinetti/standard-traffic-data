@@ -23,10 +23,11 @@ ENV SUMO_COMMAND="most.sumocfg -e 16200 --step-length 1 --device.fcd.period 5 --
 
 # SUMO_MODEL_PREFIX: the prefix you chose and used by SUMO
 # to name the output files. Must be coherent with `SUMO_COMMAND'
+# The default is related to the MoST scenario.
 ENV SUMO_MODEL_PREFIX=most
 
-# SUMO_OUTPUT_FILE: the name you want to give the output file.
-# Extensions will be added by default at .xml
+# SUMO_OUTPUT_FILE: the name you want to give to the output file.
+# Extensions will be added by default as `.xml'
 ENV SUMO_OUTPUT_FILE=most_0400_0430_1_5
 
 # S3, DB: consistent with the same variables in the pipeline.
@@ -75,7 +76,6 @@ RUN add-apt-repository ppa:sumo/stable -y \
 RUN export SUMO_HOME=/usr/share/sumo
 RUN git clone $MODEL_LOC ./sumodir
 
-RUN alias python=python3.8
 RUN apt install python3-pip -y
 
 RUN apt install postgresql-server-dev-12 -y
