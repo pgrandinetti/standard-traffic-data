@@ -72,7 +72,7 @@ RUN apt install -y git \
 
 RUN add-apt-repository ppa:sumo/stable -y \
     && apt update \
-    && apt install -y sumo sumo-tools
+    && apt install -y sumo sumo-tools --fix-missing
 RUN export SUMO_HOME=/usr/share/sumo
 RUN git clone $MODEL_LOC ./sumodir
 
