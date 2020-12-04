@@ -73,8 +73,6 @@ RUN apt-get update \
     sumo sumo-tools \
  && rm -rf /var/lib/apt/lists/*
 
-#RUN yes Y | apt install software-properties-common
-
 RUN python3.8 -m venv /venv
 ENV PATH=/venv/bin:$PATH
 
