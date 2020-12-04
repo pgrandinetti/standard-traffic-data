@@ -62,32 +62,26 @@ MAINTAINER Pietro Grandinetti
 LABEL Description="Dockerized SUMO for standard datasets and reproducible research"
 
 RUN apt-get update \
-    && apt-get -y upgrade
+ && apt install -y software-properties-common \
+ && add-apt-repository ppa:sumo/stable \
+ && apt-get update && apt-get install -y \
+    git \
+    wget \
+    postgresql-server-dev-12 \
+    python3-pip \
+    python3-venv \
+    sumo sumo-tools \
+ && rm -rf /var/lib/apt/lists/*
 
-RUN yes Y | apt install software-properties-common
+#RUN yes Y | apt install software-properties-common
 
-RUN apt install -y git \
-    && apt install -y wget \
-    && apt install -y curl
-
-RUN add-apt-repository ppa:sumo/stable -y \
-    && apt update \
-    && apt install -y sumo sumo-tools
-RUN export SUMO_HOME=/usr/share/sumo
-RUN git clone $MODEL_LOC ./sumodir
-
-RUN apt install python3-pip -y
-
-RUN apt install postgresql-server-dev-12 -y
-
-RUN apt install -y python3-venv
 RUN python3.8 -m venv /venv
 ENV PATH=/venv/bin:$PATH
 
+RUN git clone $MODEL_LOC ./sumodir
 RUN git clone https://github.com/pgrandinetti/standard-traffic-data stdata
 RUN cd stdata \
     && pip3 install -r requirements.txt
-
 RUN cd stdata && pip3 install -e ./
 
 CMD export SUMO_HOME=/usr/share/sumo \
