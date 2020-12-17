@@ -14,7 +14,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/pgrandinetti/standard-traffic-data",
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude=("knowledge",)),
     scripts=[
         'scripts/upload_file_s3.py',
         'scripts/load_csv_psql.py',
