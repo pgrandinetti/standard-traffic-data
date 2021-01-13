@@ -9,6 +9,7 @@ isort==5.6.4
 jedi==0.17.2
 jmespath==0.10.0
 lazy-object-proxy==1.4.3
+matplotlib==3.3.3
 mccabe==0.6.1
 numpy==1.19.2
 pandas==1.1.3
@@ -31,5 +32,3 @@ typed-ast==1.4.1
 urllib3==1.25.11
 wcwidth==0.2.5
 wrapt==1.12.1
-matplotlib==3.3.3
-datetime==3.9.1
