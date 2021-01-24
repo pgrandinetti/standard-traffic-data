@@ -64,4 +64,4 @@ But know this: if you request access and tell us what's your idea, we will defin
 The list is in alphabetical order (by last names).
 
 - Ruggero Fabbiano - [github page](https://github.com/RuggeroFabbiano)
-- Pietro Grandinetti - [personal website] (https://pete.world)
+- Pietro Grandinetti - [personal website](https://pete.world)
