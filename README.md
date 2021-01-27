@@ -12,7 +12,7 @@ Everything you will see here is open-source and reproducible:
 
 ## How to contribute
 
-The real aim of this project is to involve as many people as possible. Whether you are an experienced engineer, data scientist or a student (isn't everybody?), if you are interested in playing with these datasets then please go ahead and have fun. We hope you'd get in touch and collaborate, because we beliebe open-source is meant to produce and share knowledge. There's already some amazing people sharing their experience with us, and we'd love for you to be the next one.
+The real aim of this project is to involve as many people as possible. Whether you are an experienced engineer, data scientist or a student (isn't everybody?), if you are interested in playing with these datasets then please go ahead and have fun. We hope you'll get in touch and collaborate, because we believe open-source is meant to produce and share knowledge. There's already some amazing people sharing their experience with us, and we'd love for you to be the next one.
 
 If that's what you believe too, open an issue now and explain what ideas you have for your next article with this data.
 
@@ -31,13 +31,15 @@ Here's how you can navigate this repository after you fork it.
 
 ## The data
 
-Whenever we generate or collect data, we publish it for everybody's benefits. Next is a list of all types of datasets, or databases, that we have.
+Whenever we generate or collect data, we publish it for everybody's benefits. Next is a list of all datasets, or databases, that we have.
 
 **Principality of Monaco**
 
 These are timeseries of simulated road traffic data. The simulator used is SUMo, and the simulated city is the Principality of Monaco. We used the previous work of researchers at Communication Systems Department of Sophia-Antipolis, France. We took their (quite complex!) work and made it 100% reproducible with a Docker file. The story is told in the introduction of [this article](https://github.com/pgrandinetti/standard-traffic-data/blob/statsinf_pietro/knowledge/How_Fast_Would_You_Drive_In_Monaco.ipynb).
 
 For a description of the data, read the introduction of [this other article](https://github.com/pgrandinetti/standard-traffic-data/blob/main/knowledge/Urban_Traffic_Data_Exploratory_Analysis.ipynb).
+
+For more information about the ETL process, read [this page](https://github.com/pgrandinetti/standard-traffic-data/tree/main/std_traffic/pipelines#dockerized-pipeline).
 
 | Time horizon | File size | Download |
 | ------------ | --------- | -------- |
@@ -57,9 +59,9 @@ We have also saved the same data in a database that is accessible via the intern
 
 Maintaining the database is a bit expensive for us, especially because this is a nonprofit, self-funded project. Therefore, we don't disclose the host and password, to avoid bots.
 
-But know this: if you request access and tell us what's your idea, we will definitely share it with you. Nobody's request was ever rejected so far. Open an issue to start collaborating!
+But know this: if you request access and tell us what's your idea, we will definitely share the database credentials with you. Nobody's request was ever rejected so far. Open an issue to start collaborating!
 
-## Project contributors (if your name is missing, send a PR!)
+## Project contributors (submit a PR if your name is missing!)
 
 The list is in alphabetical order (by last names).
 
