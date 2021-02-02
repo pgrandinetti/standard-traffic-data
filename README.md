@@ -35,7 +35,7 @@ Whenever we generate or collect data, we publish it for everybody's benefits. Ne
 
 **Principality of Monaco**
 
-These are timeseries of simulated road traffic data. The simulator used is SUMo, and the simulated city is the Principality of Monaco. We used the previous work of researchers at Communication Systems Department of Sophia-Antipolis, France. We took their (quite complex!) work and made it 100% reproducible with a Docker file. The story is told in the introduction of [this article](https://github.com/pgrandinetti/standard-traffic-data/blob/statsinf_pietro/knowledge/How_Fast_Would_You_Drive_In_Monaco.ipynb).
+These are timeseries of simulated road traffic data. The simulator used is SUMo, and the simulated city is the Principality of Monaco. We used the previous work of researchers at Communication Systems Department of Sophia-Antipolis, France. We took their (quite complex!) work and made it 100% reproducible with a Docker file. The story is told in the introduction of [this article](https://github.com/pgrandinetti/standard-traffic-data/blob/main/knowledge/How_Fast_Would_You_Drive_In_Monaco.ipynb).
 
 For a description of the data, read the introduction of [this other article](https://github.com/pgrandinetti/standard-traffic-data/blob/main/knowledge/Urban_Traffic_Data_Exploratory_Analysis.ipynb).
 
@@ -55,7 +55,7 @@ For more information about the ETL process, read [this page](https://github.com/
 | 4am - 2pm    |   7+ GB   | [link](https://standard-traffic-data.s3.us-east-2.amazonaws.com/most_0400_1400_1_5.csv) |
 
 
-We have also saved the same data in a database that is accessible via the internet. This is the better approach for statistical sampling and large data, instead of downloading a huge CSV. See [this article](https://github.com/pgrandinetti/standard-traffic-data/blob/statsinf_pietro/knowledge/How_Fast_Would_You_Drive_In_Monaco.ipynb) for a usage example.
+We have also saved the same data in a database that is accessible via the internet. This is the better approach for statistical sampling and large data, instead of downloading a huge CSV. See [this article](https://github.com/pgrandinetti/standard-traffic-data/blob/main/knowledge/How_Fast_Would_You_Drive_In_Monaco.ipynb) for a usage example.
 
 Maintaining the database is a bit expensive for us, especially because this is a nonprofit, self-funded project. Therefore, we don't disclose the host and password, to avoid bots.
 
