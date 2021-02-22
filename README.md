@@ -67,3 +67,4 @@ The list is in alphabetical order (by last names).
 
 - Ruggero Fabbiano - [LinkedIn](https://www.linkedin.com/in/ruggerofabbiano/)
 - Pietro Grandinetti - [website](https://pete.world)
+- Pedro Venturott - [website](https://pedrohgv.github.io/)
