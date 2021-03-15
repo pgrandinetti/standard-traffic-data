@@ -67,5 +67,5 @@ The list is in alphabetical order (by last names).
 
 - Ruggero Fabbiano - [LinkedIn](https://www.linkedin.com/in/ruggerofabbiano/)
 - Pietro Grandinetti - [website](https://pete.world)
-- Harshit Sharma - [LinkedIn](https://www.linkedin.com/in/hrshtt/) | [Contributed Article in Colab](https://colab.research.google.com/github/pgrandinetti/standard-traffic-data/blob/main/knowledge/Traffic_Data_Visualization.ipynb)
+- Harshit Sharma - [LinkedIn](https://www.linkedin.com/in/hrshtt/)
 - Pedro Venturott - [website](https://pedrohgv.github.io/)
